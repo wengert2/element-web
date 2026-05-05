@@ -312,7 +312,7 @@ describe("RoomListItemViewModel", () => {
             expect(viewModel.getSnapshot().notification.callType).toBe("video");
         });
 
-        it("should not show call indicator when no participants", async () => {
+        it("should show call indicator even when no participants", async () => {
             const mockCall = {
                 callType: CallType.Voice,
                 participants: new Map(),
@@ -326,7 +326,7 @@ describe("RoomListItemViewModel", () => {
 
             await flushPromises();
 
-            expect(viewModel.getSnapshot().notification.callType).toBeUndefined();
+            expect(viewModel.getSnapshot().notification.callType).toBe("voice");
         });
 
         it("should listen to call participant changes", () => {
@@ -339,7 +339,7 @@ describe("RoomListItemViewModel", () => {
             jest.spyOn(CallStore.instance, "getCall").mockReturnValue(mockCall as unknown as Call);
 
             viewModel = new RoomListItemViewModel({ room, client: matrixClient });
-            expect(viewModel.getSnapshot().notification.callType).toBeUndefined();
+            expect(viewModel.getSnapshot().notification.callType).toBe("voice");
 
             // Get the callback registered for call state changes
             const mockCalls = (CallStore.instance.on as jest.Mock).mock.calls;
@@ -351,7 +351,7 @@ describe("RoomListItemViewModel", () => {
 
             // Get the callback registered for participant changes
             const participantsChangeCallback = mockCall.on.mock.calls[0][1];
-            participantsChangeCallback();
+            participantsChangeCallback(mockCall.participants);
 
             expect(viewModel.getSnapshot().notification.callType).toBe("voice");
         });
@@ -396,14 +396,14 @@ describe("RoomListItemViewModel", () => {
             jest.spyOn(CallStore.instance, "getCall").mockReturnValue(mockCall as unknown as Call);
 
             viewModel = new RoomListItemViewModel({ room, client: matrixClient });
-            expect(viewModel.getSnapshot().notification.callType).toBeUndefined();
+            expect(viewModel.getSnapshot().notification.callType).toBe("voice");
 
             // Simulate participant joining
             mockCall.participants.set(matrixClient.getUserId()! as unknown as RoomMember, new Set());
 
             // Get the callback registered for participant changes
             const participantsChangeCallback = mockCall.on.mock.calls[0][1];
-            participantsChangeCallback();
+            participantsChangeCallback(mockCall.participants);
 
             expect(viewModel.getSnapshot().notification.callType).toBe("voice");
         });

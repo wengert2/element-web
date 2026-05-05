@@ -11,6 +11,7 @@ import {
     type RoomListItemViewSnapshot,
     type RoomListItemViewActions,
     type Section,
+    type CallParticipant,
 } from "@element-hq/web-shared-components";
 import { RoomEvent } from "matrix-js-sdk/src/matrix";
 import { CallType } from "matrix-js-sdk/src/webrtc/call";
@@ -23,6 +24,7 @@ import { MessagePreviewStore } from "../../stores/message-preview";
 import { DefaultTagID } from "../../stores/room-list-v3/skip-list/tag";
 import DMRoomMap from "../../utils/DMRoomMap";
 import SettingsStore from "../../settings/SettingsStore";
+import { mediaFromMxc } from "../../customisations/Media";
 import { NotificationLevel } from "../../stores/notifications/NotificationLevel";
 import { hasAccessToNotificationMenu, hasAccessToOptionsMenu } from "./utils";
 import { EchoChamber } from "../../stores/local-echo/EchoChamber";
@@ -169,8 +171,11 @@ export class RoomListItemViewModel
         this.listenToCallParticipants();
 
         const currentCallType = this.snapshot.current.notification.callType;
-        const newCallType =
-            call && call.participants.size > 0 ? (call.callType === CallType.Voice ? "voice" : "video") : undefined;
+        const newCallType = call
+            ? call.callType === CallType.Voice
+                ? "voice"
+                : "video"
+            : undefined;
 
         if (currentCallType !== newCallType) {
             this.updateItem();
@@ -193,6 +198,8 @@ export class RoomListItemViewModel
             sections: keepIfSame(this.snapshot.current.sections, newItem.sections),
             // Preserve message preview - it's managed separately by loadAndSetMessagePreview
             messagePreview: this.snapshot.current.messagePreview,
+            // Preserve callParticipants - they're only updated when participants change significantly
+            callParticipants: keepIfSame(this.snapshot.current.callParticipants, newItem.callParticipants),
         });
     }
 
@@ -287,6 +294,8 @@ export class RoomListItemViewModel
         const callType =
             call?.callType === CallType.Voice ? "voice" : call?.callType === CallType.Video ? "video" : undefined;
 
+        const callParticipants = RoomListItemViewModel.getCallParticipants(call);
+
         const canMoveToSection = SettingsStore.getValue("feature_room_list_sections");
 
         // Build sections list for the "Move to section" submenu
@@ -308,7 +317,7 @@ export class RoomListItemViewModel
                 hasUnreadCount: notifState.hasUnreadCount,
                 count: notifState.count,
                 muted: isNotificationMute,
-                callType: hasParticipantsInCall ? callType : undefined,
+                callType: call ? callType : undefined,
             },
             showMoreOptionsMenu,
             showNotificationMenu,
@@ -321,6 +330,7 @@ export class RoomListItemViewModel
             roomNotifState,
             canMoveToSection,
             sections,
+            callParticipants,
         };
     }
 
@@ -447,5 +457,34 @@ export class RoomListItemViewModel
         if (tag === DefaultTagID.Favourite) return _t("room_list|section|favourites");
         if (tag === DefaultTagID.LowPriority) return _t("room_list|section|low_priority");
         return customSectionData[tag]?.name || tag;
+    }
+
+    /**
+     * Convert call participants from the Call model to the simplified CallParticipant format.
+     * Returns undefined if the feature flag is disabled or there is no active call.
+     */
+    private static getCallParticipants(call: Call | null): CallParticipant[] | undefined {
+        if (!call || call.participants.size === 0) return undefined;
+
+        // const showCallParticipants = SettingsStore.getValue("feature_call_participants_in_room_list");
+        // if (!showCallParticipants) return undefined;
+
+        const participants: CallParticipant[] = [];
+        for (const [member, deviceIds] of call.participants) {
+            if (deviceIds.size > 0) {
+                const mxcUrl = member.getMxcAvatarUrl();
+                const avatarUrl = mxcUrl
+                    ? (mediaFromMxc(mxcUrl).getThumbnailOfSourceHttp(16, 16, "crop") ?? undefined)
+                    : undefined;
+
+                participants.push({
+                    id: member.userId,
+                    name: member.name,
+                    avatarUrl,
+                });
+            }
+        }
+
+        return participants.length > 0 ? participants : undefined;
     }
 }

@@ -231,6 +231,7 @@ export interface Settings {
     "feature_notifications": IFeature;
     "feature_msc4362_encrypted_state_events": IFeature;
     "feature_user_status": IFeature;
+    "feature_call_participants_in_room_list": IFeature;
     // These are in the feature namespace but aren't actually features
     "feature_hidebold": IBaseSetting<boolean>;
 
@@ -806,6 +807,13 @@ export const SETTINGS: Settings = {
             true,
             true,
         ),
+        default: false,
+    },
+    "feature_call_participants_in_room_list": {
+        isFeature: true,
+        labsGroup: LabGroup.VoiceAndVideo,
+        displayName: _td("labs|call_participants_in_room_list"),
+        supportedLevels: LEVELS_DEVICE_ONLY_SETTINGS_WITH_CONFIG,
         default: false,
     },
     "useCompactLayout": {

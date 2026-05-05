@@ -99,6 +99,9 @@
             "voice_call": "Open room %(roomName)s with a voice call."
         },
         "appearance": "Appearance",
+        "call": {
+            "more_participants": "+%(count)s more"
+        },
         "chat_moved": "Chat moved",
         "collapse_all_sections": "Collapse all sections",
         "collapse_filters": "Collapse filter list",

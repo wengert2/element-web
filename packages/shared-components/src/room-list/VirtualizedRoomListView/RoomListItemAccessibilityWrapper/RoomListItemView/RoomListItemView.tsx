@@ -13,6 +13,7 @@ import { Flex } from "../../../../core/utils/Flex";
 import { NotificationDecoration, type NotificationDecorationData } from "./NotificationDecoration";
 import { RoomListItemHoverMenu } from "./RoomListItemHoverMenu";
 import { RoomListItemContextMenu } from "./RoomListItemContextMenu";
+import { CallParticipantsBar } from "./CallParticipantsBar";
 import { type RoomNotifState } from "./RoomNotifs";
 import styles from "./RoomListItemView.module.css";
 import { useViewModel, type ViewModel } from "../../../../core/viewmodel";
@@ -58,6 +59,18 @@ export interface Section {
 }
 
 /**
+ * Represents a participant in an active call.
+ */
+export interface CallParticipant {
+    /** Unique identifier for the participant */
+    id: string;
+    /** Display name of the participant */
+    name: string;
+    /** URL of the participant's avatar image */
+    avatarUrl?: string;
+}
+
+/**
  * Snapshot for a room list item.
  * Contains all the data needed to render a room in the list.
  */
@@ -96,6 +109,8 @@ export interface RoomListItemViewSnapshot {
     canMoveToSection: boolean;
     /** Available sections the room can be assigned to */
     sections: Section[];
+    /** Call participants when a call is active in this room (undefined when no call) */
+    callParticipants?: CallParticipant[];
 }
 
 /**
@@ -135,7 +150,7 @@ export type RoomListItemViewModel = ViewModel<RoomListItemViewSnapshot, RoomList
 /**
  * Props for RoomListItemView component
  */
-export interface RoomListItemViewProps extends Omit<React.HTMLAttributes<HTMLButtonElement>, "onFocus"> {
+export interface RoomListItemViewProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "onFocus"> {
     /** The room item view model */
     vm: RoomListItemViewModel;
     /** Whether the room is selected */
@@ -166,7 +181,7 @@ export const RoomListItemView = memo(function RoomListItemView({
     renderAvatar,
     ...props
 }: RoomListItemViewProps): JSX.Element {
-    const ref = useRef<HTMLButtonElement>(null);
+    const ref = useRef<HTMLDivElement>(null);
     const item = useViewModel(vm);
 
     useEffect(() => {
@@ -181,7 +196,7 @@ export const RoomListItemView = memo(function RoomListItemView({
     return (
         <RoomListItemContextMenu vm={vm}>
             <Flex
-                as="button"
+                as="div"
                 ref={ref}
                 className={classNames(styles.roomListItem, "mx_RoomListItemView", {
                     [styles.selected]: isSelected,
@@ -192,11 +207,10 @@ export const RoomListItemView = memo(function RoomListItemView({
                 })}
                 gap="var(--cpd-space-3x)"
                 align="stretch"
-                type="button"
                 aria-selected={isSelected}
                 aria-label={a11yLabel}
                 onClick={vm.onOpenRoom}
-                onFocus={(e: React.FocusEvent<HTMLButtonElement>) => onFocus(item.id, e)}
+                onFocus={(e: React.FocusEvent<HTMLDivElement>) => onFocus(item.id, e)}
                 tabIndex={isFocused ? 0 : -1}
                 {...props}
             >
@@ -212,6 +226,9 @@ export const RoomListItemView = memo(function RoomListItemView({
                                 <Text as="div" size="sm" className={styles.ellipsis} title={item.messagePreview}>
                                     {item.messagePreview}
                                 </Text>
+                            )}
+                            {item.callParticipants && item.callParticipants.length > 0 && (
+                                <CallParticipantsBar participants={item.callParticipants} />
                             )}
                         </div>
                         {(item.showMoreOptionsMenu || item.showNotificationMenu) && (

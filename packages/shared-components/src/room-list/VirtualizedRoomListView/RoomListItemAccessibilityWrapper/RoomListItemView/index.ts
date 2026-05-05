@@ -13,6 +13,7 @@ export type {
     RoomListItemViewActions,
     RoomListItemViewProps,
     Section,
+    CallParticipant,
 } from "./RoomListItemView";
 export { RoomListItemNotificationMenu } from "./RoomListItemNotificationMenu";
 export type { RoomListItemNotificationMenuProps } from "./RoomListItemNotificationMenu";
