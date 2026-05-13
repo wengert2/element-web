@@ -214,7 +214,7 @@ export const RoomListItemView = memo(function RoomListItemView({
                 tabIndex={isFocused ? 0 : -1}
                 {...props}
             >
-                <Flex className={styles.container} gap="var(--cpd-space-3x)" align="center">
+                <Flex className={styles.container} gap="var(--cpd-space-3x)" align={item.callParticipants ? "start" : "center"} style={item.callParticipants ? { paddingTop: "12px" } : undefined}>
                     {renderAvatar(item.room)}
                     <Flex className={styles.content} gap="var(--cpd-space-2x)" align="center" justify="space-between">
                         {/* We truncate the room name when too long. Title here is to show the full name on hover */}

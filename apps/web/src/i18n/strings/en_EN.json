@@ -1527,7 +1527,6 @@
         "bridge_state_creator": "This bridge was provisioned by <user />.",
         "bridge_state_manager": "This bridge is managed by <user />.",
         "bridge_state_workspace": "Workspace: <networkLink/>",
-        "call_participants_in_room_list": "Show call participants in room list",
         "click_for_info": "Click for more info",
         "currently_experimental": "Currently experimental.",
         "custom_themes": "Support adding custom themes",

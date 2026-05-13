@@ -95,6 +95,8 @@ export class RoomListItemViewModel
         this.disposables.trackListener(CallStore.instance, CallStoreEvent.Call, this.onCallStateChanged);
         // If there is an active call for this room, listen to participant changes
         this.listenToCallParticipants();
+        // Ensure existing calls are detected even if CallStore already emitted the event
+        this.onCallStateChanged();
 
         // Subscribe to room-specific events
         this.disposables.trackListener(props.room, RoomEvent.Name, this.onRoomChanged);
@@ -129,15 +131,7 @@ export class RoomListItemViewModel
         void this.loadAndSetMessagePreview();
     };
 
-    /**
-     * Handler for call participant changes. Only updates the item if the call moves between having participants and not having participants, to avoid unnecessary updates.
-     * @param participants The current call participants
-     */
-    private onCallParticipantsChanged = (participants: Map<RoomMember, Set<string>>): void => {
-        const hasCall = Boolean(this.snapshot.current.notification.callType);
-        // There is already an active call, we don't need to update the item
-        if (hasCall && participants.size > 0) return;
-
+    private onCallParticipantsChanged = (): void => {
         this.updateItem();
     };
 
@@ -466,8 +460,8 @@ export class RoomListItemViewModel
     private static getCallParticipants(call: Call | null): CallParticipant[] | undefined {
         if (!call || call.participants.size === 0) return undefined;
 
-        // const showCallParticipants = SettingsStore.getValue("feature_call_participants_in_room_list");
-        // if (!showCallParticipants) return undefined;
+        const showCallParticipants = SettingsStore.getValue("feature_call_participants_in_room_list");
+        if (!showCallParticipants) return undefined;
 
         const participants: CallParticipant[] = [];
         for (const [member, deviceIds] of call.participants) {

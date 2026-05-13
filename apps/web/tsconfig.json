@@ -1,6 +1,7 @@
 {
     "compilerOptions": {
         "allowImportingTsExtensions": true,
+        "noEmit": true,
         "experimentalDecorators": false,
         "emitDecoratorMetadata": false,
         "resolveJsonModule": true,
